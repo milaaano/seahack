@@ -6,6 +6,40 @@ import QRCode from "react-qr-code";
 import SiteHeader from "@/components/SiteHeader";
 import { getDoll } from "@/lib/dolls";
 
+type ApiJson = Record<string, unknown>;
+
+async function readApiJson(res: Response): Promise<ApiJson> {
+  const text = await res.text();
+  if (!text) return {};
+
+  try {
+    return JSON.parse(text) as ApiJson;
+  } catch {
+    return { error: text };
+  }
+}
+
+function apiMessage(json: ApiJson, fallback: string) {
+  const error = typeof json.error === "string" ? json.error : undefined;
+  const providerMessage =
+    typeof json.providerMessage === "string" ? json.providerMessage : undefined;
+  const task = recordValue(json.task);
+  const taskError =
+    typeof task?.error === "string" ? task.error : undefined;
+
+  if (error && providerMessage && !error.includes(providerMessage)) {
+    return `${error}: ${providerMessage}`;
+  }
+
+  return error ?? taskError ?? providerMessage ?? fallback;
+}
+
+function recordValue(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : null;
+}
+
 export default function MeetPage({
   params,
 }: {
@@ -18,6 +52,9 @@ export default function MeetPage({
   const [storyDone, setStoryDone] = useState(false);
   const [childName, setChildName] = useState("your little one");
   const [videoOk, setVideoOk] = useState(true);
+  const [liveVideoSrc, setLiveVideoSrc] = useState<string | null>(null);
+  const [videoGenerating, setVideoGenerating] = useState(false);
+  const [videoMessage, setVideoMessage] = useState("");
   const [added, setAdded] = useState(false);
   const startedRef = useRef(false);
 
@@ -70,6 +107,66 @@ export default function MeetPage({
         </div>
       </main>
     );
+  }
+
+  async function generateLiveVideo() {
+    if (!doll || videoGenerating) return;
+
+    setVideoGenerating(true);
+    setVideoMessage("Starting live AI video generation...");
+
+    try {
+      const submit = await fetch("/api/generate-video", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dollId: doll.id,
+          childName,
+          story,
+          wait: false,
+        }),
+      });
+      const submitJson = await readApiJson(submit);
+      const taskId =
+        typeof submitJson.taskId === "string" ? submitJson.taskId : null;
+      if (!submit.ok || !taskId) {
+        throw new Error(apiMessage(submitJson, "Could not start video generation"));
+      }
+
+      setVideoMessage("Video task started. This can take a few minutes...");
+      for (let i = 0; i < 60; i += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+        const status = await fetch(
+          `/api/generate-video/status?taskId=${encodeURIComponent(
+            taskId
+          )}&dollId=${encodeURIComponent(doll.id)}`
+        );
+        const statusJson = await readApiJson(status);
+        if (!status.ok) {
+          throw new Error(apiMessage(statusJson, "Could not check video status"));
+        }
+
+        const task = recordValue(statusJson.task);
+        const taskStatus = typeof task?.status === "string" ? task.status : undefined;
+        const liveUrl = typeof statusJson.url === "string" ? statusJson.url : null;
+
+        if (taskStatus === "completed" && liveUrl) {
+          setLiveVideoSrc(`${liveUrl}?t=${Date.now()}`);
+          setVideoMessage("Live AI clip ready.");
+          return;
+        }
+        if (taskStatus === "failed") {
+          throw new Error(apiMessage(statusJson, "Video generation failed"));
+        }
+        setVideoMessage(`Still generating... status: ${taskStatus || "pending"}`);
+      }
+
+      setVideoMessage("Still generating. Try again in a minute to check the task.");
+    } catch (error) {
+      setVideoMessage(error instanceof Error ? error.message : "Video generation failed");
+    } finally {
+      setVideoGenerating(false);
+    }
   }
 
   return (
@@ -132,7 +229,7 @@ export default function MeetPage({
             Watch {doll.name}&apos;s story come to life
           </h3>
           <video
-            src={`/videos/${doll.id}.mp4`}
+            src={liveVideoSrc ?? `/videos/${doll.id}.mp4`}
             poster={doll.image}
             controls
             playsInline
@@ -144,6 +241,16 @@ export default function MeetPage({
             …the story pauses right at the good part. {doll.name} knows how it
             ends — bring them home to find out.
           </p>
+          <button
+            onClick={generateLiveVideo}
+            disabled={!storyDone || videoGenerating}
+            className="mt-5 bg-sage-deep hover:bg-sage-dark disabled:bg-sage/50 disabled:cursor-not-allowed text-cream font-semibold px-6 py-3 rounded-full shadow-md transition-all"
+          >
+            {videoGenerating ? "Generating live clip..." : "Generate live AI clip"}
+          </button>
+          {videoMessage && (
+            <p className="text-xs text-ink-soft mt-2">{videoMessage}</p>
+          )}
         </section>
       )}
 

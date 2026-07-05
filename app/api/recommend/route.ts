@@ -1,9 +1,8 @@
-import { generateObject } from "ai";
+import { generateText } from "ai";
 import { z } from "zod";
 import {
   inference,
   MODEL,
-  LLM_TIMEOUT_MS,
   markProviderDead,
   providerLooksDead,
 } from "@/lib/llm";
@@ -26,6 +25,17 @@ const schema = z.object({
     )
     .length(3),
 });
+
+function parseJsonObject(text: string) {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  const candidate = fenced?.[1] ?? text;
+  const start = candidate.indexOf("{");
+  const end = candidate.lastIndexOf("}");
+  if (start === -1 || end === -1 || end <= start) {
+    throw new Error("No JSON object found");
+  }
+  return JSON.parse(candidate.slice(start, end + 1));
+}
 
 type Answers = {
   childName?: string;
@@ -73,20 +83,22 @@ export async function POST(req: Request) {
 
   try {
     if (providerLooksDead()) return Response.json(heuristicRecommend(answers));
-    const { object } = await generateObject({
+    const { text } = await generateText({
       model: inference(MODEL),
-      schema,
       system:
         "You match children with handmade organic dolls from Apple Park's real catalog. " +
         "You must pick exactly 3 different dolls, only from the provided catalog ids. " +
-        "Reasons are one warm sentence each, grounded in what the gift-giver shared, never generic.",
+        "Reasons are one warm sentence each, grounded in what the gift-giver shared, never generic. " +
+        "Return ONLY valid JSON with this exact shape: " +
+        "{\"recommendations\":[{\"dollId\":\"wren\",\"reason\":\"...\"},{\"dollId\":\"paloma\",\"reason\":\"...\"},{\"dollId\":\"gwen\",\"reason\":\"...\"}]}",
       prompt:
         `The child:\n- name: ${answers.childName}\n- age: ${answers.age}\n- occasion: ${answers.occasion}\n- loves / personality: ${answers.personality}\n\n` +
         `Catalog:\n${catalog}\n\nPick the 3 best-matching dolls for ${answers.childName}.`,
+      maxOutputTokens: 500,
       temperature: 0.5,
       maxRetries: 0,
-      abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
     });
+    const object = schema.parse(parseJsonObject(text));
     // Defensive: dedupe; if the model repeated a doll, top up from the heuristic.
     const seen = new Set<string>();
     const recs = object.recommendations.filter((r) => {
@@ -104,7 +116,8 @@ export async function POST(req: Request) {
       }
     }
     return Response.json({ recommendations: recs });
-  } catch {
+  } catch (error) {
+    console.warn("Recommendation LLM failed; using heuristic fallback:", error);
     markProviderDead();
     return Response.json(heuristicRecommend(answers));
   }

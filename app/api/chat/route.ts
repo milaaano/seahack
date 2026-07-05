@@ -1,5 +1,10 @@
-import { streamText } from "ai";
-import { inference, MODEL, LLM_TIMEOUT_MS, streamTextWithFallback } from "@/lib/llm";
+import { generateText } from "ai";
+import {
+  inference,
+  markProviderDead,
+  MODEL,
+  providerLooksDead,
+} from "@/lib/llm";
 
 export const runtime = "nodejs";
 export const maxDuration = 30;
@@ -32,6 +37,26 @@ function fallbackQuestion(step: number, a: Answers): string {
   }
 }
 
+function streamLocalText(text: string) {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      for (const word of text.split(/(?<=\s)/)) {
+        controller.enqueue(encoder.encode(word));
+        await new Promise((r) => setTimeout(r, 8));
+      }
+      controller.close();
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/plain; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 export async function POST(req: Request) {
   const { step = 0, answers = {} } = (await req.json()) as {
     step: number;
@@ -43,8 +68,12 @@ export async function POST(req: Request) {
     .map(([k, v]) => `${k}: ${v}`)
     .join("; ");
 
-  const makeStream = () => {
-    const result = streamText({
+  const fallback = fallbackQuestion(step, answers);
+
+  if (providerLooksDead()) return streamLocalText(fallback);
+
+  try {
+    const { text } = await generateText({
       model: inference(MODEL),
       system:
         "You are the warm, gentle gift guide for Apple Park, a maker of organic heirloom dolls. " +
@@ -58,10 +87,14 @@ export async function POST(req: Request) {
       maxOutputTokens: 90,
       temperature: 0.7,
       maxRetries: 0,
-      abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
     });
-    return result.textStream;
-  };
 
-  return streamTextWithFallback(makeStream, fallbackQuestion(step, answers));
+    const question = text.trim();
+    if (question.length < 24) throw new Error(`Question too short: ${question}`);
+    return streamLocalText(question);
+  } catch (error) {
+    console.warn("Chat question LLM failed; using fallback:", error);
+    markProviderDead();
+    return streamLocalText(fallback);
+  }
 }

@@ -2,19 +2,14 @@ import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 
 export const inference = createOpenAICompatible({
   name: "inference",
-  baseURL: "https://api.inference.net/v1",
+  baseURL:
+    process.env.INFERENCE_BASE_URL ?? "https://model.service-inference.ai/v1",
   apiKey: process.env.INFERENCE_API_KEY ?? "",
 });
 
-// Fast hosted instruct model on Inference.net (verified via /v1/models) —
-// plenty for warm questions, a 3-pick match, and a 220-word story. Set
-// INFERENCE_MODEL to override (e.g. meta-llama/llama-3.3-70b-instruct/fp-8
-// for max quality at ~3-4x the latency).
-export const MODEL =
-  process.env.INFERENCE_MODEL ?? "meta-llama/llama-3.1-8b-instruct/fp-16";
-
-// Bound every provider call so a slow/hung request can never stall the demo.
-export const LLM_TIMEOUT_MS = 10_000;
+// Inference.ai's OpenAI-compatible endpoint. Set INFERENCE_MODEL to override
+// if the dashboard-selected model changes.
+export const MODEL = process.env.INFERENCE_MODEL ?? "deepseek-chat";
 
 // After a hard provider failure (bad key, outage), skip the provider entirely
 // for a while — otherwise every question pays a pointless ~2s failed round-trip
@@ -44,7 +39,8 @@ export async function streamTextWithFallback(
     try {
       iterator = makeStream()[Symbol.asyncIterator]();
       first = await iterator.next();
-    } catch {
+    } catch (error) {
+      console.warn("LLM stream failed before first token:", error);
       iterator = null;
     }
   }
@@ -70,7 +66,8 @@ export async function streamTextWithFallback(
             await new Promise((r) => setTimeout(r, 8));
           }
         }
-      } catch {
+      } catch (error) {
+        console.warn("LLM stream failed mid-response:", error);
         // Provider died mid-stream — finish gracefully with whatever we have.
       } finally {
         controller.close();

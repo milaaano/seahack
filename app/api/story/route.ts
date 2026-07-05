@@ -1,5 +1,5 @@
 import { streamText } from "ai";
-import { inference, MODEL, LLM_TIMEOUT_MS, streamTextWithFallback } from "@/lib/llm";
+import { inference, MODEL, streamTextWithFallback } from "@/lib/llm";
 import { getDoll } from "@/lib/dolls";
 
 export const runtime = "nodejs";
@@ -52,7 +52,6 @@ export async function POST(req: Request) {
       maxOutputTokens: 400,
       temperature: 0.8,
       maxRetries: 0,
-      abortSignal: AbortSignal.timeout(LLM_TIMEOUT_MS),
     });
     return result.textStream;
   };
