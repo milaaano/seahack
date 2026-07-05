@@ -52,7 +52,9 @@ export default function MeetPage({
   const [storyDone, setStoryDone] = useState(false);
   const [childName, setChildName] = useState("your little one");
   const [videoOk, setVideoOk] = useState(true);
-  const [liveVideoSrc, setLiveVideoSrc] = useState<string | null>(null);
+  const [videoSrc, setVideoSrc] = useState(() => `/videos/${dollId}-live.mp4`);
+  const [videoFallbackTried, setVideoFallbackTried] = useState(false);
+  const [videoEnded, setVideoEnded] = useState(false);
   const [videoGenerating, setVideoGenerating] = useState(false);
   const [videoMessage, setVideoMessage] = useState("");
   const [added, setAdded] = useState(false);
@@ -109,6 +111,11 @@ export default function MeetPage({
     );
   }
 
+  const aiVideoSrc = `/videos/${doll.id}-live.mp4`;
+  const basicVideoSrc = `/videos/${doll.id}.mp4`;
+  const displayedVideoSrc = videoSrc ?? aiVideoSrc;
+  const showingAiVideo = displayedVideoSrc.includes("-live.mp4");
+
   async function generateLiveVideo() {
     if (!doll || videoGenerating) return;
 
@@ -151,7 +158,10 @@ export default function MeetPage({
         const liveUrl = typeof statusJson.url === "string" ? statusJson.url : null;
 
         if (taskStatus === "completed" && liveUrl) {
-          setLiveVideoSrc(`${liveUrl}?t=${Date.now()}`);
+          setVideoOk(true);
+          setVideoSrc(`${liveUrl}?t=${Date.now()}`);
+          setVideoFallbackTried(false);
+          setVideoEnded(false);
           setVideoMessage("Live AI clip ready.");
           return;
         }
@@ -228,15 +238,38 @@ export default function MeetPage({
           <h3 className="font-display text-xl text-sage-dark mb-4">
             Watch {doll.name}&apos;s story come to life
           </h3>
-          <video
-            src={liveVideoSrc ?? `/videos/${doll.id}.mp4`}
-            poster={doll.image}
-            controls
-            playsInline
-            preload="metadata"
-            onError={() => setVideoOk(false)}
-            className="w-full rounded-[2rem] shadow-lg border border-linen bg-sage-dark"
-          />
+          <div className="relative">
+            <video
+              key={displayedVideoSrc}
+              src={displayedVideoSrc}
+              poster={doll.image}
+              controls
+              playsInline
+              preload="metadata"
+              onPlay={() => setVideoEnded(false)}
+              onEnded={() => setVideoEnded(true)}
+              onError={() => {
+                if (!videoFallbackTried && showingAiVideo) {
+                  setVideoSrc(basicVideoSrc);
+                  setVideoFallbackTried(true);
+                  setVideoEnded(false);
+                  return;
+                }
+
+                setVideoOk(false);
+              }}
+              className="w-full rounded-[2rem] shadow-lg border border-linen bg-sage-dark"
+            >
+              Your browser does not support the video tag.
+            </video>
+            {videoEnded && (
+              <div className="absolute inset-0 flex items-center justify-center rounded-[2rem] bg-sage-dark/80 px-6 text-center">
+                <p className="font-display text-2xl sm:text-3xl font-semibold text-cream">
+                  Buy the toy to continue the story
+                </p>
+              </div>
+            )}
+          </div>
           <p className="text-sm text-ink-soft mt-3 italic">
             …the story pauses right at the good part. {doll.name} knows how it
             ends — bring them home to find out.
@@ -246,7 +279,11 @@ export default function MeetPage({
             disabled={!storyDone || videoGenerating}
             className="mt-5 bg-sage-deep hover:bg-sage-dark disabled:bg-sage/50 disabled:cursor-not-allowed text-cream font-semibold px-6 py-3 rounded-full shadow-md transition-all"
           >
-            {videoGenerating ? "Generating live clip..." : "Generate live AI clip"}
+            {videoGenerating
+              ? "Generating live clip..."
+              : showingAiVideo
+                ? "Regenerate AI clip"
+                : "Generate live AI clip"}
           </button>
           {videoMessage && (
             <p className="text-xs text-ink-soft mt-2">{videoMessage}</p>

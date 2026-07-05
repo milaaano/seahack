@@ -23,6 +23,8 @@ const QUESTION_GOALS = [
   "what the child loves and what their personality is like",
 ];
 
+const CHAT_TIMEOUT_MS = 5_000;
+
 function fallbackQuestion(step: number, a: Answers): string {
   const name = a.childName?.trim() || "your little one";
   switch (step) {
@@ -87,6 +89,7 @@ export async function POST(req: Request) {
       maxOutputTokens: 90,
       temperature: 0.7,
       maxRetries: 0,
+      abortSignal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
     });
 
     const question = text.trim();
