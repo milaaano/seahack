@@ -1,0 +1,92 @@
+[
+  {
+    "id": "wren",
+    "name": "Wren",
+    "price": 55,
+    "image": "/dolls/wren.png",
+    "productUrl": "https://appleparkkids.com/products/apple-park-kids-wren",
+    "personality": ["cuddly", "imaginative", "loves-story-time"],
+    "matchKeywords": ["shy", "gentle", "quiet", "bedtime", "stories", "reading", "tea parties", "cozy", "calm", "books"],
+    "staticStory": "Wren has sweet red yarn pigtails and a beautiful blue muslin dress with little wood buttons. She loves cuddles, tea parties, and story time more than anything — she always saves the coziest spot on the picnic blanket for her best friend."
+  },
+  {
+    "id": "paloma",
+    "name": "Paloma",
+    "price": 55,
+    "image": "/dolls/paloma.png",
+    "productUrl": "https://appleparkkids.com/products/park-friends-paloma",
+    "personality": ["kind", "generous", "loves-sharing"],
+    "matchKeywords": ["kind", "sharing", "friends", "generous", "playdates", "empathy", "caring", "social", "turn-taking"],
+    "staticStory": "Paloma wears a teal muslin romper with a matching headband over her soft knit ponytail. She is the kindest friend in the park — she loves sharing, taking turns, and making sure nobody is ever left out of the game."
+  },
+  {
+    "id": "luke",
+    "name": "Luke",
+    "price": 55,
+    "image": "/dolls/luke.jpg",
+    "productUrl": "https://appleparkkids.com/products/luke-in-marine",
+    "personality": ["helpful", "friendly", "energetic"],
+    "matchKeywords": ["helpful", "playground", "active", "team", "sports", "energetic", "outgoing", "running", "friendly"],
+    "staticStory": "Luke wears his favorite marine-blue T-shirt and shorts, ready for the playground. He is everyone's most helpful friend — first to hold the ladder on the slide, first to pick you up when you tumble, and always ready for one more game of tag."
+  },
+  {
+    "id": "gwen",
+    "name": "Gwen",
+    "price": 55,
+    "image": "/dolls/gwen.png",
+    "productUrl": "https://appleparkkids.com/products/park-friends-gwen",
+    "personality": ["musical", "expressive", "joyful"],
+    "matchKeywords": ["music", "singing", "dancing", "songs", "performing", "instruments", "creative", "expressive"],
+    "staticStory": "Gwen has tactile knit pigtails and hand-painted rosy cheeks, and she is always humming something. She loves music with her whole heart — she sings to the birds in the park and makes up little songs about everything she sees."
+  },
+  {
+    "id": "levi",
+    "name": "Levi",
+    "price": 55,
+    "image": "/dolls/levi.jpg",
+    "productUrl": "https://appleparkkids.com/products/levi-in-sage",
+    "personality": ["builder", "creative", "patient"],
+    "matchKeywords": ["building", "sandcastles", "beach", "blocks", "lego", "creative", "maker", "patient", "hands-on"],
+    "staticStory": "Levi wears a soft sage T-shirt and shorts, usually with a little sand still in his pockets. He is the park's master builder — sandcastles with towers and moats and secret doors — and he never minds starting over when the tide comes in."
+  },
+  {
+    "id": "alex",
+    "name": "Alex",
+    "price": 55,
+    "image": "/dolls/alex.jpg",
+    "productUrl": "https://appleparkkids.com/products/park-friends-alex",
+    "personality": ["curious", "outdoorsy", "adventurous"],
+    "matchKeywords": ["curious", "outdoors", "nature", "adventure", "explorer", "animals", "bugs", "hiking", "questions"],
+    "staticStory": "Alex wears sturdy organic cotton overalls, perfect for climbing and exploring. He is endlessly curious about the outdoors — every leaf, ladybug, and puddle is a discovery, and his favorite question is 'I wonder what's over there?'"
+  },
+  {
+    "id": "grady",
+    "name": "Grady",
+    "price": 55,
+    "image": "/dolls/grady.jpg",
+    "productUrl": "https://appleparkkids.com/products/grady-in-caramel",
+    "personality": ["caring", "gentle", "encouraging"],
+    "matchKeywords": ["caring", "comfort", "empathy", "thoughtful", "hugs", "sensitive", "cheering-up", "gentle", "sweet"],
+    "staticStory": "Grady wears a warm caramel outfit as soft as his heart. He is the friend who notices when someone is sad and knows just how to cheer them up — a silly face, a shared snack, or the world's most patient hug."
+  },
+  {
+    "id": "mia",
+    "name": "Mia",
+    "price": 55,
+    "image": "/dolls/mia.png",
+    "productUrl": "https://appleparkkids.com/products/mia-in-dusty-rose",
+    "personality": ["playful", "silly", "loves-surprises"],
+    "matchKeywords": ["playful", "surprises", "giggles", "games", "silly", "fun", "hide-and-seek", "jokes", "laughing"],
+    "staticStory": "Mia twirls in her dusty rose dress with knit jersey pigtails that bounce when she laughs. She is the most playful friend in the park — she adores surprises, hide-and-seek, and giggling until her painted cheeks turn even rosier."
+  },
+  {
+    "id": "chloe",
+    "name": "Chloe",
+    "price": 55,
+    "image": "/dolls/chloe.png",
+    "productUrl": "https://appleparkkids.com/products/park-friends-chloe",
+    "personality": ["nurturing", "soothing", "bedtime-buddy"],
+    "matchKeywords": ["nurturing", "bedtime", "sleep", "comfort", "baby", "gentle", "caretaker", "lullabies", "soothing"],
+    "staticStory": "Chloe has sweet blonde fabric pigtails and a dusty rose muslin romper with charming ruffles. She is a natural nurturer — she tucks in every stuffed animal at bedtime, hums lullabies, and believes everyone sleeps better with a friend close by."
+  }
+]

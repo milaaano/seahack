@@ -1,0 +1,81 @@
+@import "tailwindcss";
+
+@theme {
+  /* Apple Park warm/organic palette */
+  --color-oat: #f6f1e7;
+  --color-cream: #fbf8f2;
+  --color-linen: #efe7d8;
+  --color-sage: #8a9a7b;
+  --color-sage-deep: #5c6b50;
+  --color-sage-dark: #3f4a37;
+  --color-terracotta: #c97b5d;
+  --color-terracotta-deep: #a95f43;
+  --color-ink: #3d3a34;
+  --color-ink-soft: #6f6a5f;
+
+  --font-display: var(--font-fraunces);
+  --font-sans: var(--font-nunito);
+}
+
+body {
+  background: var(--color-oat);
+  color: var(--color-ink);
+  font-family: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-fraunces), Georgia, serif;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes gentle-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+.animate-gentle-bob {
+  animation: gentle-bob 3.5s ease-in-out infinite;
+}
+
+/* typing dots */
+@keyframes blink {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+  40% {
+    opacity: 1;
+  }
+}
+.typing-dot {
+  animation: blink 1.2s infinite both;
+}
+.typing-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+.typing-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
